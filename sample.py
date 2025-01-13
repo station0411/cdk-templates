@@ -58,6 +58,19 @@ result = []
 #     row = "\t".join(str(index_holizontal) for index_holizontal in range(3))
 #     result.append(row)
 
+# =IF(E2="有効", IF(
+    # AND(B2="なし", D2="なし"), 
+    # 置換用文字一覧_入力禁止!A$4, 
+    # IF(
+        # AND(B2="なし", D2<>"なし"), 
+        # 置換用文字一覧_入力禁止!A$5, 
+        # IF(
+            # AND(B2<>"なし", D2="なし"), 
+            # 置換用文字一覧_入力禁止!A$6, 
+            # 置換用文字一覧_入力禁止!A$7))), "なし")
+for index in range(2, 512):
+    print(f'=IF(E{index}="有効", IF(AND(B{index}="なし", D{index}="なし"), 置換用文字一覧_入力禁止!A$4, IF(AND(B{index}="なし", D{index}<>"なし"), 置換用文字一覧_入力禁止!A$5, IF(AND(B{index}<>"なし", D{index}="なし"), 置換用文字一覧_入力禁止!A$6, 置換用文字一覧_入力禁止!A$7))), "なし")')
+
 output = "\n".join(result)
 # print(output)
 with open("./output.txt", "w") as file:

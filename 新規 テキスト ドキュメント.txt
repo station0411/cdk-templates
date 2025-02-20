@@ -1,0 +1,1 @@
+for /f %i in ('aws backup list-backup-selections --backup-plan-id 3e9b0213-f773-4f5a-90b5-2d3c4b8b3b3a --region ap-northeast-1 --query "BackupSelectionsList[*].SelectionId | join(`\n`, @)" --output text') do @echo Processing Selection ID: %i & aws backup get-backup-selection --backup-plan-id 3e9b0213-f773-4f5a-90b5-2d3c4b8b3b3a --selection-id %i --region ap-northeast-1

@@ -1,1 +1,29 @@
 for /f %i in ('aws backup list-backup-selections --backup-plan-id 3e9b0213-f773-4f5a-90b5-2d3c4b8b3b3a --region ap-northeast-1 --query "BackupSelectionsList[*].SelectionId | join(`\n`, @)" --output text') do @echo Processing Selection ID: %i & aws backup get-backup-selection --backup-plan-id 3e9b0213-f773-4f5a-90b5-2d3c4b8b3b3a --selection-id %i --region ap-northeast-1
+
+
+@REM ログのプット
+aws logs create-log-stream --log-group-name "/sample/logTest" --log-stream-name "test"
+aws logs put-log-events --log-group-name "/sample/logTest" --log-stream-name "test" --log-events '[{\"timestamp\": 1740386880000, \"message\":\"ERROR\"}]' 
+aws logs put-log-events --log-group-name "/sample/logTest" --log-stream-name "test" --log-events '[{\"timestamp\": 1740386880001, \"message\":\"ERROR\"}]'
+aws logs put-log-events --log-group-name "/sample/logTest" --log-stream-name "test" --log-events '[{\"timestamp\": 1740386880002, \"message\":\"ERROR\"}]'
+aws cloudwatch put-metric-data --namespace "SampleLogTest" --metric-name "sample-logTest-metrics" --value 5
+
+
+@REM バケット作成
+aws s3api create-bucket --bucket 999999-8888-9999 --region ap-northeast-1 --create-bucket-configuration LocationConstraint=ap-northeast-1
+
+@REM タグ付与
+aws s3api put-bucket-tagging --bucket 999999-8888-9999 --tagging 'TagSet=[{Key=project,Value=xxx}]'
+
+@REM デフォルト暗号化
+aws s3api put-bucket-encryption --bucket 999999-8888-9999 --server-side-encryption-configuration '{\"Rules\":[{\"ApplyServerSideEncryptionByDefault\":{\"SSEAlgorithm\":\"aws:kms\",\"KMSMasterKeyID\":\"arn:aws:kms:ap-northeast-1:111597699083:key/6c8e4dd8-0820-469a-ab93-2ae27ab08b92\"}}]}'
+
+@REM サーバーアクセスログ
+aws s3api put-bucket-logging --bucket 999999-8888-9999 --bucket-logging-status '{\"LoggingEnabled\":{\"TargetBucket\":\"999999-s3-access-log\",\"TargetPrefix\":\"999999-8888-9999-logs/\"}}'
+
+@REM フォルダ作成
+aws s3api put-object --bucket 999999-8888-9999 --key 8888/rireki/
+aws s3api put-object --bucket 999999-8888-9999 --key 9999/rireki/
+
+@REM バケットポリシー
+aws s3api put-bucket-policy --bucket 999999-8888-9999 --policy '{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Deny\",\"Principal\":\"*\",\"Action\":\"s3:*\",\"Resource\":[\"arn:aws:s3:::999999-8888-9999\",\"arn:aws:s3:::999999-8888-9999/*\"],\"Condition\":{\"Bool\":{\"aws:SecureTransport\":\"false\"}}}]}'

@@ -27,3 +27,43 @@ aws s3api put-object --bucket 999999-8888-9999 --key 9999/rireki/
 
 @REM バケットポリシー
 aws s3api put-bucket-policy --bucket 999999-8888-9999 --policy '{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Deny\",\"Principal\":\"*\",\"Action\":\"s3:*\",\"Resource\":[\"arn:aws:s3:::999999-8888-9999\",\"arn:aws:s3:::999999-8888-9999/*\"],\"Condition\":{\"Bool\":{\"aws:SecureTransport\":\"false\"}}}]}'
+
+@REM テスト
+http://192.168.11.30:8080/realms/master/protocol/saml/clients/aws
+
+
+cd K:
+cd K:\dev\AWS\tf\tf-alb
+$SAMLAssertion = Get-Content -Raw ".\saml.txt"
+aws sts assume-role-with-saml --role-arn "arn:aws:iam::111597699083:role/keycloak-admin" --principal-arn "arn:aws:iam::111597699083:saml-provider/keycloak" --saml-assertion $SAMLAssertion
+
+
+vi ./saml
+SAMLAssertion=$(cat ./saml)
+aws sts assume-role-with-saml --role-arn "arn:aws:iam::111597699083:role/keycloak-admin" --principal-arn "arn:aws:iam::111597699083:saml-provider/keycloak" --saml-assertion "$(cat ./saml)"
+
+aws sts assume-role-with-saml --role-arn "arn:aws:iam::111597699083:role/keycloak-admin" --principal-arn "arn:aws:iam::111597699083:saml-provider/keycloak" --saml-assertion "$(./keycloak.sh)" --endpoint-url "https://vpce-06e815335aa87e22f-ambr7wvc.sts.ap-northeast-1.vpce.amazonaws.com"
+
+
+vi ./keycloak.sh
+cat > keycloak.sh
+
+#!/bin/bash
+URL_KEYCLOAK="http://192.168.11.30:8080/realms/master/protocol/saml/clients/aws"
+USERNAME="keycloak-admin"
+PASSWORD="password"
+COOKIE_JAR=$(mktemp)
+LOGIN_PAGE=$(curl -c "$COOKIE_JAR" -s "$URL_KEYCLOAK")
+FORM_ACTION=$(echo "$LOGIN_PAGE" | grep -oP 'action="\K[^"]+')
+SAML_RESPONSE_PAGE=$(curl -b "$COOKIE_JAR" -c "$COOKIE_JAR" -s -X POST "$FORM_ACTION" -d "username=$USERNAME" -d "password=$PASSWORD")
+SAML_RESPONSE=$(echo "$SAML_RESPONSE_PAGE" | grep -oP '<input type="hidden" name="SAMLResponse" value="\K[^"]+')
+echo "$SAML_RESPONSE"
+rm -f "$COOKIE_JAR"
+
+aws sts assume-role-with-saml --role-arn "arn:aws:iam::111597699083:role/keycloak-admin" --principal-arn "arn:aws:iam::111597699083:saml-provider/keycloak" --saml-assertion "$(./keycloak.sh)" --endpoint-url "https://vpce-0dc6ab92dfc778c35-eb6zxngh.sts.ap-northeast-1.vpce.amazonaws.com"
+
+export AWS_ACCESS_KEY_ID=""
+export AWS_SECRET_ACCESS_KEY=""
+export AWS_SESSION_TOKEN=""
+
+aws s3 ls s3://999999-8888-9999 --endpoint-url "https://s3.ap-northeast-1.amazonaws.com"

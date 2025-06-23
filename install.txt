@@ -1,0 +1,5 @@
+sudo amazon-linux-extras enable postgresql14
+sudo yum clean metadata
+sudo yum install -y postgresql
+psql --version
+psql -h tf-ecs-pj-db-instance.c5scwiackry3.ap-northeast-1.rds.amazonaws.com -U postgres -d tfecspj
